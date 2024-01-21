@@ -49,6 +49,8 @@ export default class ServiceMessagePort<Master extends boolean = false> extends 
   downloadChunk: (payload: {id: ServiceDownloadTaskPayload['id'], chunk: Uint8Array}) => void
   downloadFinalize: (payload: ServiceDownloadTaskPayload['id']) => void,
   downloadCancel: (payload: ServiceDownloadTaskPayload['id']) => void
+
+  appendLiveStreamChunk: (payload: {chunk: Uint8Array, groupCallId: string, ts: string}) => void;
 }, {
   // to main thread
   pushClick: (payload: PushNotificationObject) => void,

@@ -987,4 +987,9 @@ export class ApiFileManager extends AppManager {
 
     return this.uploadPromises[fileName] = deferred;
   }
+
+  async appendLiveStreamChunk(chunk: Uint8Array, groupCallId: string, ts: string) {
+    const serviceMessagePort = appManagersManager.getServiceMessagePort();
+    await serviceMessagePort.invoke('appendLiveStreamChunk', {chunk, groupCallId, ts});
+  }
 }

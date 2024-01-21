@@ -908,7 +908,7 @@ $btn-menu-z-index: 4;
   cursor: pointer !important;
   pointer-events: all !important;
 
-  &:not(.btn-primary):not(.btn-corner).menu-open {
+  &:not(.btn-primary):not(.btn-corner):not(.video-container-button).menu-open {
     background-color: var(--light-secondary-text-color);
   }
 

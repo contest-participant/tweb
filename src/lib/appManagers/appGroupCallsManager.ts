@@ -242,12 +242,13 @@ export class AppGroupCallsManager extends AppManager {
     return call;
   }
 
-  public async createGroupCall(chatId: ChatId, scheduleDate?: number, title?: string) {
+  public async createGroupCall(chatId: ChatId, scheduleDate?: number, title?: string, rtmp_stream?: boolean) {
     const updates = await this.apiManager.invokeApi('phone.createGroupCall', {
       peer: this.appPeersManager.getInputPeerById(chatId.toPeerId(true)),
       random_id: nextRandomUint(32),
       schedule_date: scheduleDate,
-      title
+      title,
+      rtmp_stream
     });
 
     this.apiUpdatesManager.processUpdateMessage(updates);
@@ -380,5 +381,24 @@ export class AppGroupCallsManager extends AppManager {
     }).then((updates) => {
       this.apiUpdatesManager.processUpdateMessage(updates);
     });
+  }
+
+  public async getLiveStreamPart(groupCallId: GroupCallId, timeMs: string, dc: number) {
+    const call = this.getGroupCallInput(groupCallId);
+    const location = {
+      _: 'inputGroupCallStream',
+      call,
+      scale: 0,
+      time_ms: timeMs,
+      video_channel: 1,
+      video_quality: 2
+    } as const;
+    const {bytes} = await this.apiFileManager.requestFilePart(dc, location, 0, 128 * 1024);
+    return bytes.slice(32);
+  }
+
+  public async toggleRecord(callId: string | number, on: boolean, title?: string, video?: boolean, video_portrait?: boolean) {
+    const call = this.getGroupCallInput(callId);
+    await this.apiManager.invokeApi('phone.toggleGroupCallRecord', {call, start:on, title, video, video_portrait})
   }
 }

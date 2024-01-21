@@ -6,7 +6,7 @@
 
 import simulateEvent from '../helpers/dom/dispatchEvent';
 import getDeepProperty from '../helpers/object/getDeepProperty';
-import {LangPackKey, _i18n} from '../lib/langPack';
+import {FormatterArguments, LangPackKey, _i18n} from '../lib/langPack';
 import apiManagerProxy from '../lib/mtproto/mtprotoworker';
 import rootScope from '../lib/rootScope';
 
@@ -18,6 +18,7 @@ export default class RadioField {
   constructor(options: {
     text?: string,
     langKey?: LangPackKey,
+    langArgs?: FormatterArguments,
     name: string,
     value?: string,
     stateKey?: string,
@@ -64,7 +65,7 @@ export default class RadioField {
 
       main.append(caption); */
     } else if(options.langKey) {
-      _i18n(main, options.langKey);
+      _i18n(main, options.langKey, options.langArgs);
     }
 
     label.append(input, main);

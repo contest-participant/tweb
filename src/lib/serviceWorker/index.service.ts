@@ -16,12 +16,17 @@ import {getWindowClients} from '../../helpers/context';
 import {MessageSendPort} from '../mtproto/superMessagePort';
 import handleDownload from './download';
 import onShareFetch, {checkWindowClientForDeferredShare} from './share';
+import {addLiveStreamEventListeners, onLiveStreamFetch} from './liveStream';
 
 // #if MTPROTO_SW
 // import '../mtproto/mtproto.worker';
 // #endif
 
-export const log = logger('SW', LogTypes.Error | LogTypes.Debug | LogTypes.Log | LogTypes.Warn, true);
+export const log = logger(
+  'SW',
+  LogTypes.Error | LogTypes.Debug | LogTypes.Log | LogTypes.Warn,
+  true
+);
 const ctx = self as any as ServiceWorkerGlobalScope;
 
 // #if !MTPROTO_SW
@@ -82,6 +87,8 @@ const {
   onDownloadFetch,
   onClosedWindows: onDownloadClosedWindows
 } = handleDownload(serviceMessagePort);
+
+addLiveStreamEventListeners(serviceMessagePort);
 
 // * service worker can be killed, so won't get 'hello' event
 getWindowClients().then((windowClients) => {
@@ -154,6 +161,11 @@ const onFetch = (event: FetchEvent): void => {
 
       case 'ping': {
         event.respondWith(new Response('pong'));
+        break;
+      }
+
+      case 'livestream': {
+        onLiveStreamFetch(event, params);
         break;
       }
 

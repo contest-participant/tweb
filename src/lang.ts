@@ -2368,7 +2368,39 @@ const lang = {
   'Premium.Offset.AlreadyHave': 'You already have Telegram Premium.',
   'GiftLink.UseSuccess': 'You successfully activated gift link.',
   'Giveaway.Type.Specific.Modal.SelectUsers': 'Select Users',
-  'GroupStats.Title': 'Group Statistics'
+  'GroupStats.Title': 'Group Statistics',
+  // live streams
+  'CopiedToClipboard': 'Copied to clipboard.',
+  'LiveStream.LinkCopied': 'Live stream link copied to clipboard.',
+  'LiveStream.AudioOutput': 'Audio Output %@',
+  'LiveStream.Menu.OutputDevice': 'Output Device',
+  'LiveStream.Menu.StartRecording': 'Start Recording',
+  'LiveStream.Menu.StopRecording': 'Stop Recording',
+  'LiveStream.Menu.StreamSettings': 'Stream Settings',
+  'LiveStream.Menu.EndLiveStream': 'End Live Stream',
+  'LiveStream.Recording.StartRecording': 'START RECORDING',
+  'LiveStream.Recording.Title': 'Recording Title',
+  'LiveStream.Recording.AudioDetail': 'The chat will be recorded to an audio file',
+  'LiveStream.Recording.VideoDetail': 'Choose video orientation',
+  'LiveStream.Recording.RecordVideo': 'Also Record Video',
+  'LiveStream.Recording.Note': 'Record this stream and save the result into an file?',
+  'LiveStream.Recording.Note2': 'Participants will see that the chat is being recorded.',
+  'LiveStream.StreamWith': 'Stream With...',
+  'LiveStream.StreamWith.TopText': 'To stream video with another app, enter these Server URL and Stream Key in your streaming app. Software encoding recommended (×264 in OBS).',
+  'LiveStream.StreamWith.BottomText': 'Once you start broadcasting in your streaming app, click Start Streaming below.',
+  'LiveStream.StreamWith.StartStreaming': 'START STREAMING',
+  'LiveStream.StreamSettings.RevokeKey': 'Revoke Stream Key',
+  'LiveStream.StreamSettings.KeyRevoked': 'Stream Key was revoked.',
+  'LiveStream.StreamSettings.EndLiveStream': 'END LIVE STREAM',
+  'LiveStream.Key': 'Stream Key',
+  'LiveStream.URL': 'Stream URL',
+  'LiveStream.NoStream.Title': 'Oops!',
+  'LiveStream.NoStream.Description': 'Telegram doesn\'t see any stream coming from your streaming app. Please make sure you entered the right Server URL and Stream Key in your app.',
+  'LiveStream.Live': 'LIVE',
+  'LiveStream.Streaming': 'streaming',
+  'LiveStream.WatchCount': '%@ watching',
+  //
+  'PeerInfo.Action.StartVideoChat': 'Start Video Chat'
 };
 
 export default lang;

@@ -4,6 +4,7 @@
  * https://github.com/morethanwords/tweb/blob/master/LICENSE
  */
 
+import {USER_AGENT} from '../../environment/userAgent';
 import readBlobAsUint8Array from '../../helpers/blob/readBlobAsUint8Array';
 import deferredPromise, {CancellablePromise} from '../../helpers/cancellablePromise';
 import debounce from '../../helpers/schedulers/debounce';
@@ -11,6 +12,7 @@ import pause from '../../helpers/schedulers/pause';
 import {InputFileLocation} from '../../layer';
 import CacheStorageController from '../files/cacheStorage';
 import {DownloadOptions, MyUploadFile} from '../mtproto/apiFileManager';
+import {processMp4} from '../video/chromiumBugFix';
 import {getMtprotoMessagePort, log, serviceMessagePort} from './index.service';
 import {ServiceRequestFilePartTaskPayload} from './serviceMessagePort';
 import timeout from './timeout';
@@ -246,6 +248,11 @@ class Stream {
 
       if(this.info.mimeType) {
         headers['Content-Type'] = this.info.mimeType;
+        if(this.info.mimeType == 'video/mp4') {
+          if(/Chrome/.test(USER_AGENT)) {
+            processMp4(ab, String(this.id), offset);
+          }
+        }
       }
 
       // simulate slow connection

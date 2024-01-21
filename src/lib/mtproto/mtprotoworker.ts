@@ -331,9 +331,9 @@ class ApiManagerProxy extends MTProtoMessagePort {
   }
 
   private _registerServiceWorker() {
-    if(import.meta.env.DEV && IS_SAFARI) {
-      return;
-    }
+    // if(import.meta.env.DEV && IS_SAFARI) {
+    //   return;
+    // }
 
     navigator.serviceWorker.register(
       // * doesn't work

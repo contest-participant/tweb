@@ -10,7 +10,7 @@ import CheckboxField, {CheckboxFieldOptions} from './checkboxField';
 import RadioField from './radioField';
 import ripple from './ripple';
 import RadioForm from './radioForm';
-import {i18n, LangPackKey} from '../lib/langPack';
+import {FormatterArguments, i18n, LangPackKey} from '../lib/langPack';
 import replaceContent from '../helpers/dom/replaceContent';
 import setInnerHTML, {setDirection} from '../helpers/dom/setInnerHTML';
 import {attachClickEvent} from '../helpers/dom/clickEvent';
@@ -392,13 +392,14 @@ export const RadioFormFromRows = (rows: Row[], onChange: (value: string) => void
   return RadioForm(rows.map((r) => ({container: r.container, input: r.radioField.input})), onChange);
 };
 
-export const RadioFormFromValues = (values: {langPackKey: LangPackKey, value: number | string, checked?: boolean}[], onChange: Parameters<typeof RadioFormFromRows>[1]) => {
+export const RadioFormFromValues = (values: {langPackKey: LangPackKey, langPackArgs?: FormatterArguments, value: number | string, checked?: boolean}[], onChange: Parameters<typeof RadioFormFromRows>[1]) => {
   const name = 'name-' + (Math.random() * 0x7FFFFF | 0);
   let checkedRadioField: RadioField;
-  const rows = values.map(({langPackKey, value, checked}) => {
+  const rows = values.map(({langPackKey, langPackArgs, value, checked}) => {
     const row = new Row({
       radioField: new RadioField({
         langKey: langPackKey,
+        langArgs: langPackArgs,
         name,
         value: '' + value
       })

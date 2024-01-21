@@ -55,10 +55,10 @@ import {avatarNew, findUpAvatar} from '../avatarNew';
 import {Middleware, MiddlewareHelper, getMiddleware} from '../../helpers/middleware';
 import setBadgeContent from '../../helpers/setBadgeContent';
 import createBadge from '../../helpers/createBadge';
-import PopupBoostsViaGifts from '../popups/boostsViaGifts';
 import AppStatisticsTab from '../sidebarRight/tabs/statistics';
 import {ChatType} from './chat';
 import AppBoostsTab from '../sidebarRight/tabs/boosts';
+import PopupStreamWith from '../popups/streamWith';
 
 type ButtonToVerify = {element?: HTMLElement, verify: () => boolean | Promise<boolean>};
 
@@ -77,7 +77,7 @@ export default class ChatTopbar {
   private btnJoin: HTMLButtonElement;
   private btnPinned: HTMLButtonElement;
   private btnCall: HTMLButtonElement;
-  private btnGroupCall: HTMLButtonElement;
+  private btnGroupCall: HTMLElement;
   private btnMute: HTMLButtonElement;
   private btnSearch: HTMLButtonElement;
   private btnMore: HTMLElement;
@@ -330,6 +330,16 @@ export default class ChatTopbar {
       if(((await this.managers.appPeersManager.isBroadcast(this.peerId)) && type === 'group') ||
         ((await this.managers.appPeersManager.isAnyGroup(this.peerId)) && type === 'broadcast')) {
         return false;
+      }
+    }
+
+    const fullChat = await this.managers.appProfileManager.getChatFull(this.peerId.toChatId());
+    if('call' in fullChat) {
+      const groupCall = await this.managers.appGroupCallsManager.getGroupCall(fullChat.call.id)
+      if(groupCall._ == 'groupCall') {
+        if(groupCall.pFlags.rtmp_stream) {
+          return false;
+        }
       }
     }
 
@@ -629,6 +639,15 @@ export default class ChatTopbar {
     this.chat.appImManager.joinGroupCall(this.peerId);
   };
 
+  private onStreamWithClick = async() => {
+    const credentials = await this.managers.appChatsManager.getRtmpCredentials(this.peerId);
+    PopupElement.createPopup(PopupStreamWith, credentials, this.onStartStreamingClick.bind(this)).show();
+  }
+
+  private onStartStreamingClick = async() => {
+    await this.managers.appGroupCallsManager.createGroupCall(this.peerId.toChatId(), undefined, undefined, true);
+  }
+
   private get peerId() {
     return this.chat.peerId;
   }
@@ -641,12 +660,30 @@ export default class ChatTopbar {
 
     this.btnJoin = Button('btn-primary btn-color-primary chat-join hide');
     this.btnCall = ButtonIcon('phone');
-    this.btnGroupCall = ButtonIcon('videochat');
+    this.btnGroupCall = ButtonMenuToggle({
+      listenerSetter: this.listenerSetter,
+      direction: 'bottom-left',
+      icon: 'videochat',
+      onOpenBefore: async() => {
+        const chatFull = await this.managers.appProfileManager.getChatFull(this.peerId.toChatId());
+        if('call' in chatFull && chatFull.call) {
+          this.onJoinGroupCallClick();
+          throw new Error('Open prevented');
+        }
+      },
+      buttons: [
+        {icon: 'videochat', text: 'PeerInfo.Action.StartVideoChat' as LangPackKey, onClick: () => {
+          this.onJoinGroupCallClick();
+        }},
+        {icon: 'link', text: 'LiveStream.StreamWith', onClick: () => {
+          this.onStreamWithClick();
+        }}
+      ]
+    });
     this.btnPinned = ButtonIcon('pinlist chat-pinlist');
     this.btnMute = ButtonIcon('mute');
 
     this.attachClickEvent(this.btnCall, this.onCallClick.bind(this, 'voice'));
-    this.attachClickEvent(this.btnGroupCall, this.onJoinGroupCallClick);
 
     this.attachClickEvent(this.btnPinned, () => {
       this.openPinned(true);

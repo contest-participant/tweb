@@ -1086,4 +1086,11 @@ export class AppChatsManager extends AppManager {
       this.rootScope.dispatchEvent('chat_update', chatId);
     }
   };
+
+  public async getRtmpCredentials(peerId: number, revoke = false) {
+    const peer = this.appPeersManager.getInputPeerById(peerId);
+    const credentials = await this.apiManager.invokeApi('phone.getGroupCallStreamRtmpUrl', {peer, revoke})
+    return credentials;
+  }
 }
+

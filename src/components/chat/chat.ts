@@ -6,6 +6,7 @@
 
 import type {ChatRights} from '../../lib/appManagers/appChatsManager';
 import type {RequestWebViewOptions} from '../../lib/appManagers/appAttachMenuBotsManager';
+import {SendReactionOptions} from '../../lib/appManagers/appReactionsManager';
 import type {HistoryStorageKey, MessageSendingParams, MessagesStorageKey} from '../../lib/appManagers/appMessagesManager';
 import {AppImManager, APP_TABS, ChatSetPeerOptions} from '../../lib/appManagers/appImManager';
 import EventListenerBase from '../../helpers/eventListenerBase';
@@ -35,7 +36,7 @@ import AppSharedMediaTab from '../sidebarRight/tabs/sharedMedia';
 import noop from '../../helpers/noop';
 import middlewarePromise from '../../helpers/middlewarePromise';
 import indexOfAndSplice from '../../helpers/array/indexOfAndSplice';
-import {Message, WallPaper, Chat as MTChat, Reaction, AvailableReaction} from '../../layer';
+import {Message, WallPaper} from '../../layer';
 import animationIntersector, {AnimationItemGroup} from '../animationIntersector';
 import {getColorsFromWallPaper} from '../../helpers/color';
 import apiManagerProxy from '../../lib/mtproto/mtprotoworker';
@@ -45,7 +46,9 @@ import getDialogKey from '../../lib/appManagers/utils/dialogs/getDialogKey';
 import getHistoryStorageKey from '../../lib/appManagers/utils/messages/getHistoryStorageKey';
 import isForwardOfForward from '../../lib/appManagers/utils/messages/isForwardOfForward';
 import getPeerId from '../../lib/appManagers/utils/peers/getPeerId';
-import {SendReactionOptions} from '../../lib/appManagers/appReactionsManager';
+import LiveStreamBar from '../liveStreamBar';
+import ListenerSetter from '../../helpers/listenerSetter';
+import LiveStreamPipBar from '../liveStreamPipBar';
 
 export enum ChatType {
   Chat = 'chat',
@@ -68,6 +71,9 @@ export default class Chat extends EventListenerBase<{
   public selection: ChatSelection;
   public contextMenu: ChatContextMenu;
   public search: ChatSearch;
+  public liveStreamBar: LiveStreamBar;
+  public liveStreamPipBar: LiveStreamPipBar;
+  public listenerSetter: ListenerSetter;
 
   public wasAlreadyUsed: boolean;
   // public initPeerId = 0;
@@ -124,6 +130,8 @@ export default class Chat extends EventListenerBase<{
     }> = {}
   ) {
     super();
+
+    this.listenerSetter = new ListenerSetter()
 
     this.log = logger('CHAT', LogTypes.Log | LogTypes.Warn | LogTypes.Debug | LogTypes.Error);
     // this.log = logger('CHAT', LogTypes.Warn | LogTypes.Error);
@@ -362,7 +370,26 @@ export default class Chat extends EventListenerBase<{
 
     this.bubbles.attachContainerListeners();
 
-    this.container.append(this.topbar.container, this.bubbles.container, this.input.chatInput);
+    this.liveStreamPipBar = new LiveStreamPipBar();
+    this.liveStreamBar = new LiveStreamBar(this.peerId, this.managers, this.liveStreamPipBar, this.listenerSetter);
+
+    this.appImManager.addEventListener('peer_changed', ()=>{
+      this.checkLiveStreamBar()
+    })
+
+    this.listenerSetter.add(rootScope)('chat_update', (chatId) => {
+      if(this.peerId === chatId.toPeerId(true)) {
+        this.checkLiveStreamBar()
+      }
+    });
+
+    this.listenerSetter.add(rootScope)('peer_full_update', (peerId) => {
+      if(this.peerId === peerId) {
+        this.checkLiveStreamBar();
+      }
+    });
+
+    this.container.append(this.liveStreamPipBar.container, this.topbar.container, this.liveStreamBar.container, this.bubbles.container, this.input.chatInput);
 
     this.bubbles.listenerSetter.add(rootScope)('dialog_migrate', ({migrateFrom, migrateTo}) => {
       if(this.peerId === migrateFrom) {
@@ -448,6 +475,33 @@ export default class Chat extends EventListenerBase<{
     this.container?.remove();
 
     // this.log.error('Chat destroy time:', performance.now() - perf);
+  }
+
+  checkLiveStreamBar(integrityCheck = true) {
+    const chat = apiManagerProxy.getChat(this.peerId)
+    if(!chat || chat._ != 'channel') {
+      this.liveStreamBar.hide()
+      return;
+    }
+
+    Promise.resolve().then(async()=>{
+      const fullChat = await this.managers.appProfileManager.getChatFull(this.peerId.toChatId());
+      if('call' in fullChat) {
+        const groupCall = await this.managers.appGroupCallsManager.getGroupCallFull(fullChat.call.id)
+        if(groupCall._ == 'groupCall') {
+          if(groupCall.pFlags.rtmp_stream) {
+            this.liveStreamBar.setPeerId(this.peerId);
+            this.liveStreamBar.show(groupCall.participants_count);
+            return;
+          }
+        }
+      }
+
+      this.liveStreamBar.hide();
+      if(integrityCheck) {
+        setTimeout(() => this.checkLiveStreamBar(false), 1000);
+      }
+    })
   }
 
   public cleanup(helperToo = true) {

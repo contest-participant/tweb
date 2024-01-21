@@ -61,7 +61,8 @@ export default function ButtonMenuToggle({
   onOpen,
   onClose,
   onCloseAfter,
-  noIcon
+  noIcon,
+  icon
 }: {
   buttonOptions?: Parameters<typeof ButtonIcon>[1],
   listenerSetter?: ListenerSetter,
@@ -73,12 +74,13 @@ export default function ButtonMenuToggle({
   onClose?: () => void,
   onCloseAfter?: () => void,
   noIcon?: boolean
+  icon?: string
 }) {
   if(buttonOptions) {
     buttonOptions.asDiv = true;
   }
 
-  const button = container ?? ButtonIcon(noIcon ? undefined : 'more', buttonOptions);
+  const button = container ?? ButtonIcon(noIcon ? undefined : (icon ?? 'more'), buttonOptions);
   button.classList.add('btn-menu-toggle');
 
   const listenerSetter = new ListenerSetter();
@@ -93,7 +95,15 @@ export default function ButtonMenuToggle({
     el: button,
     onOpen: async(e) => {
       const _tempId = ++tempId;
-      await onOpenBefore?.(e);
+      try {
+        await onOpenBefore?.(e);
+      } catch(err) {
+        if('message' in (err as any) && (err as any).message == 'Open prevented') {
+          return;
+        } else {
+          throw err;
+        }
+      }
       if(_tempId !== tempId) return;
       if(closeTimeout) {
         clearCloseTimeout();

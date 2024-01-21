@@ -1,0 +1,38 @@
+.live-stream-pip-bar {
+  background: linear-gradient(
+    89.9deg,
+    #4588e3 0.79%,
+    #976fff 54.33%,
+    #e46ace 97.09%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 3;
+  padding: 0.4rem 1rem;
+  width: 100%;
+  line-height: 1;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  & > div:first-child {
+    font-weight: bold; // bold looked better
+  }
+
+  &-status {
+    display: flex;
+    gap: .5rem;
+
+    & > span:first-child {
+      font-weight: bold;
+    }
+
+    & > span:last-child {
+      opacity: .6;
+    }
+  }
+
+  &-hidden {
+    display: none;
+  }
+}
